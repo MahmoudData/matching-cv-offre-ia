@@ -1,0 +1,2294 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json}}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Tu es recruteur dans une agence de recrutement, tu es strict et tu portes une attention particulière aux détails d’un CV. Tu travailles avec des entreprises pour trouver des talents pour leurs postes.\nTu évalues chaque CV avec beaucoup d’attention et d’esprit critique.\n\nTu dois déterminer si le candidat issu de notre base est adapté à ce poste.\n\nRetourne 4 éléments :\n\n1. Un score de compatibilité entre 0 et 100 entre le CV du candidat et l’offre.\n2. Un **résumé court** – utilise un langage simple et sois concis.\n3. Un **résumé expliquant pourquoi le candidat convient** à ce poste.\n4. Un **résumé expliquant pourquoi le candidat ne convient pas** à ce poste.\n\nTu recevras les données dans une structure JSON contenant l’offre et le profil fusionnés\n\nRubrique de scoring (total = 100 points)\n\t1.\tPrice / PricingAmount (15 pts)\n\t•\tÉcart ≤ 10 % du budget moyen → 15 pts\n\t•\tÉcart ≤ 20 % → 10 pts\n\t•\tÉcart ≤ 30 % → 5 pts\n\t•\t30 % → 0 pt\n\t2.\tAnnées d’expérience (15 pts)\n\t•\t≥ exigence → 15 pts\n\t•\tÉcart < 1 an → 10 pts\n\t•\tÉcart ≥ 1 an → 0 pt\n\t3.\tExpériences pertinentes (15 pts)\n\t•\t≥ 2 expériences dans le même secteur/fonction → 15 pts\n\t•\t1 expérience pertinente → 10 pts\n\t•\t0 → 0 pt\n\t4.\tQualifications (15 pts)\n\t•\tNiveau supérieur (Bac+4/5+) → 15 pts\n\t•\tNiveau requis exact (ex : Bac+3) → 10 pts\n\t•\tNiveau inférieur ou hors sujet → 0 pt\n\t5.\tCompétences techniques (15 pts)\n\t•\t≥ 75 % des competences_requises → 15 pts\n\t•\t50–74 % → 10 pts\n\t•\t25–49 % → 5 pts\n\t•\t< 25 % → 0 pt\n\t6.\tLocalisation (10 pts)\n\t•\tMême région → 10 pts\n\t•\tRégion voisine → 5 pts\n\t•\tAutre → 0 pt\n\t7.\tType de mission / Secteur (10 pts)\n\t•\tParcours ou secteur identique au type_mission/secteur → 10 pts\n\t•\tPas de lien → 0 pt\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2120,
+        660
+      ],
+      "id": "19fd9675-3bb6-4c28-9d01-6c6e1e2f6def",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2100,
+        880
+      ],
+      "id": "f9bf5813-b3f2-4c0f-bfa3-ad4b7299b0ab",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "XOYoRx3nyeer3oZc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1300,
+        720
+      ],
+      "id": "4ea928a3-f44b-4637-afd8-f4a81dac63e3",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"output\": {\n    \"score\": 82,\n    \"resume_court\": \"Profil globalement aligné avec le poste, bonne expérience en gestion de projet.\",\n    \"pourquoi_oui\": \"Le candidat a une solide expérience dans la gestion de projets techniques, avec des missions similaires à celles décrites dans l’offre. Il a travaillé dans un environnement comparable et possède les compétences clés attendues.\",\n    \"pourquoi_non\": \"Manque d’expérience spécifique dans le secteur de la construction, et aucune mention de maîtrise des outils demandés comme MS Project ou AutoCAD.\"\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        880
+      ],
+      "id": "2b7aa73f-a0cf-4dfe-93fe-45842a940cb3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "85356202-2d55-4eb8-873f-523a73535502",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "109a7d20-b49d-4ea6-8a35-bcc90febffcf",
+              "name": "companyName",
+              "value": "={{ $json.companyName }}",
+              "type": "string"
+            },
+            {
+              "id": "6c71d2ee-59a6-48f9-9346-3fb37b69f614",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "641b3788-8647-4203-a234-24ca852bf547",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "13b9e0d9-3947-4062-b55b-9c5b9eb3bfbd",
+              "name": "contractType",
+              "value": "={{ $json.contractType }}",
+              "type": "string"
+            },
+            {
+              "id": "5b699532-ffbe-4bc9-8c73-5af518c11a2f",
+              "name": "experienceLevel",
+              "value": "={{ $json.experienceLevel }}",
+              "type": "string"
+            },
+            {
+              "id": "13c7a4db-97ae-4d8f-a4c7-1467b93cde81",
+              "name": "workType",
+              "value": "={{ $json.workType }}",
+              "type": "string"
+            },
+            {
+              "id": "57658654-7569-4da6-ad50-92c0307ce2a8",
+              "name": "sector",
+              "value": "={{ $json.sector }}",
+              "type": "string"
+            },
+            {
+              "id": "b820489f-e7cb-4ce0-920a-2226b4cf9962",
+              "name": "lastName",
+              "value": "={{ $json.lastName }}",
+              "type": "string"
+            },
+            {
+              "id": "73a26081-1743-4668-959c-5759feb82d97",
+              "name": "firstName",
+              "value": "={{ $json.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "99a565bf-8179-4757-8cc8-47e91bccccc6",
+              "name": "job",
+              "value": "={{ $json.job }}",
+              "type": "string"
+            },
+            {
+              "id": "3128ff3c-7fcb-49e6-89b3-0af1a595863b",
+              "name": "price",
+              "value": "={{ $json.price }}",
+              "type": "string"
+            },
+            {
+              "id": "6db30b10-9f5d-47e9-a1df-e435ccb3222c",
+              "name": "yearsOfExperience",
+              "value": "={{ $json.yearsOfExperience }}",
+              "type": "string"
+            },
+            {
+              "id": "c7c84a23-806e-4800-b542-1bc169fb5bed",
+              "name": "experiences",
+              "value": "={{ $json.experiences }}",
+              "type": "string"
+            },
+            {
+              "id": "890aa629-acf6-4200-bdf0-5813a0c54056",
+              "name": "qualifications",
+              "value": "={{ $json.qualifications }}",
+              "type": "string"
+            },
+            {
+              "id": "3bdfe8c8-4c01-4720-813e-6d67772d9b26",
+              "name": "skills",
+              "value": "={{ $json.skills }}",
+              "type": "string"
+            },
+            {
+              "id": "744fabc1-eeac-4a90-b98e-8e601c96f10e",
+              "name": "city",
+              "value": "={{ $json.city }}",
+              "type": "string"
+            },
+            {
+              "id": "7b89860e-7bea-4602-91ab-4769024e47cb",
+              "name": "pricingAmount",
+              "value": "={{ $json.pricingAmount }}",
+              "type": "string"
+            },
+            {
+              "id": "2ac63bd7-42f3-4b77-818e-5907969f1c15",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "89c63e7f-2f75-44d4-ad0c-34b4675de9d9",
+              "name": "jobUrl",
+              "value": "={{ $json.jobUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        760,
+        740
+      ],
+      "id": "a445b54b-cb0b-45c9-b665-d7da5f54b1f2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "output.score",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        2900,
+        560
+      ],
+      "id": "eb4e2d48-2e2d-448b-9320-e4cc5fd9d3ef",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "1ef36147-20dd-806f-a743-de1407926848",
+          "mode": "list",
+          "cachedResultName": "Base de donnée N8N",
+          "cachedResultUrl": "https://www.notion.so/1ef3614720dd806fa743de1407926848"
+        },
+        "title": "={{ $json.id }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Date de publication|date",
+              "includeTime": false,
+              "date": "={{ $json.publishedAt }}"
+            },
+            {
+              "key": "Titre du poste |title",
+              "title": "={{ $json.title }}"
+            },
+            {
+              "key": "Entreprise|rich_text",
+              "textContent": "={{ $json.companyName }} "
+            },
+            {
+              "key": "Localisation|rich_text",
+              "textContent": "={{ $json.location }}"
+            },
+            {
+              "key": "Niveau d'expérience|select",
+              "selectValue": "={{ $json.experienceLevel ? $json.experienceLevel.replace(/,/g, \"\") : \"\" }}"
+            },
+            {
+              "key": "Secteur|select",
+              "selectValue": "={{ $json.sector ? $json.sector.replace(/,/g, \"\") : \"\" }}"
+            },
+            {
+              "key": "Type de job |select",
+              "selectValue": "={{ $json.workType ? $json.workType.replace(/,/g, \"\") : \"\" }}"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.description ? $json.description.slice(0, 2000) : \"\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        680,
+        20
+      ],
+      "id": "221903c8-debf-4bdb-b3e7-615e22da90e3",
+      "name": "Notion",
+      "credentials": {
+        "notionApi": {
+          "id": "lNjChLId8l7bh3Vy",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "df631519-9f2b-4799-bfd6-8c439051ebe6",
+              "leftValue": "={{ $json.output.score }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3200,
+        560
+      ],
+      "id": "bf8b12bc-5d6e-44ce-b272-2994d6023ebe",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "mahmoud.merheb84@gmail.com",
+        "subject": "match",
+        "message": "={{ $json.table }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3980,
+        540
+      ],
+      "id": "32a96faf-9333-431c-8199-3d27e23fe32d",
+      "name": "Gmail",
+      "webhookId": "3002d19c-69dd-457e-b963-d513b8b898c7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gnbb9f944ej96obI",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "convertToHtmlTable",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        3720,
+        540
+      ],
+      "id": "2bb9db31-fb58-4fa0-b52e-8f6c6eb469f1",
+      "name": "HTML1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "652f0889-c448-420a-8450-253ac4bb78b0",
+              "name": "score",
+              "value": "={{ $json.output.score }}",
+              "type": "string"
+            },
+            {
+              "id": "f8e30b73-5157-4293-8baa-0320409fa086",
+              "name": "resume",
+              "value": "={{ $json.output.resume_court }}",
+              "type": "string"
+            },
+            {
+              "id": "9fe86c01-b99c-4778-afcd-53e32286ba63",
+              "name": "pros",
+              "value": "={{ $json.output.pourquoi_oui }}",
+              "type": "string"
+            },
+            {
+              "id": "2b834711-91c2-470d-b705-29736c62ea34",
+              "name": "cons",
+              "value": "={{ $json.output.pourquoi_non }}",
+              "type": "string"
+            },
+            {
+              "id": "15783c84-928c-4a08-bae5-786f6c38b5c7",
+              "name": "firstName",
+              "value": "={{ $json.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "25ada85e-5b8f-4553-86bb-b01f8f7160e0",
+              "name": "lastName",
+              "value": "={{ $json.lastName }}",
+              "type": "string"
+            },
+            {
+              "id": "7209979c-f256-4a8e-81a0-ff1a244edb2d",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "605790df-7dfb-4715-a82c-20baa919be8b",
+              "name": "jobUrl",
+              "value": "={{ $json.jobUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3480,
+        540
+      ],
+      "id": "caf5e5ee-dbff-4bc8-9325-20a7a264f06c",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "architecte",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "2f750943-d54e-468e-b612-7b6f1f6621cd"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "architecte d’intérieur",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "b1bff1d1-351c-41b4-89ab-3ce846400509"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "architecte d.e",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "b60cf1bb-f56c-4c9a-8a1c-57e843dc2584"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "scénographe",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "3485a8a0-e86c-4075-9450-3fd0b45ef6aa"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "freelance",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "0039275c-d9a5-4267-8221-7a51e6d2ec8f"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "maître d'oeuvre",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "32e509ec-d365-4bcf-8847-a6e592a4e0a0"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "moex",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "d21a8083-2c97-47f8-ad12-560268b1e694"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "maitre d'oeuvre d'exécution",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "df1d6fa3-579e-4893-9552-136d871a4bc9"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "perspectiviste 3d",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "33e84c95-2f88-473c-9c7e-f830caf403fc"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "designer",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "03bc1f2d-e3a2-4130-ae91-2dffa2660fb8"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "artiste 3d",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "fd2cea41-d09c-4e7a-ac41-9d20e9915279"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "infographiste",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "ad2098da-34d5-4d36-bdb2-b37583e634a1"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "webdesigner",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "ac3603bb-34be-47eb-90ae-4db315cc2380"
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "name": "Filter - Architecture, Urbanisme & Design",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        940
+      ],
+      "id": "5374bb0e-a036-4fc9-bb2b-fe6434ba5a45"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "property manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "5a834075-66a6-4638-b42e-1bba305757aa"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "gestion immobilière",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "f67839c3-7926-4f27-98ba-bbbc16db90ed"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "asset manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "7795048c-a409-4c00-9729-cb9748525806"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "directeur property management",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "04c7dd88-1836-4b44-bd13-ff03ca466027"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "building manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "5e30440d-7d5f-4aea-b408-9a37e4700007"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "facility manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "47862742-0cab-4d69-8c86-467dd59b4b4b"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "assistant property",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "2f6887be-6c4d-43ad-82e6-1873dbf2fe8f"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "responsable technique immobilier",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "51c7b52e-52d4-4382-9341-3bb850a5c8ea"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "gestionnaire technique",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "2c29e6e3-35f9-4a3a-93f5-2684b87abeef"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "technical & property manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "32483ab1-518e-444f-9653-65796e3b1514"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "responsable technique",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "0eab9a36-c40c-466d-980c-e683fa68a68a"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "technical manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "a198530d-4355-44d3-9a51-e8f34b5d54a6"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "chef de projet maintenance et exploitation",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "c1f61415-ecd7-42ea-890c-d352bc811dd4"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "amo",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "abefdb4e-ed54-4e48-bcb0-05861f281f02"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "mod",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "5fba91b9-0b2e-473f-9139-93584d682b79"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "moex",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "d21b9e38-4ac4-4636-aa66-08a3e46ede79"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "amo-mod-moex",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "b0c24ce3-ab07-4fe7-b1d4-df8a2cbf89a7"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "conseil",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "596dbed8-7ebd-4fda-b4ba-3d4b6e14309a"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "asset & investment management",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "a0838813-43c5-4e02-b5b6-853b6647d4c9"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "conducteur de travaux",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "adf0835e-92cb-4b09-abd4-162beefa0e95"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ingénieur travaux principal",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "3e3ad65e-5e8c-4c94-98c1-89d34cbeddf5"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "opc",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "91dfc26f-ab61-4c4a-86b4-12a30e21c58b"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "project manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "1bcbabf3-1a2d-4ac8-a0a6-92d524b98643"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "lead project manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "eccff888-4e74-4d54-8c73-c6dc9af08946"
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "name": "Filter - Gestion Immobilière & Property Management",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        560
+      ],
+      "id": "ea7b4108-7a4d-49b9-b2c9-0a83643edc34"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ingénieur travaux",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "34a671ad-bf80-4248-9693-998c2c23c803"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ingénieur cvc",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "20ddba21-adb1-443f-8737-ede6740207f2"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ingénieur modélisation hydraulique",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "0eb4c103-af4a-4db3-9dec-e8e849df5668"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "technicien cvc",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "114f62e9-3c57-407e-9b05-0920d1349c6c"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "technicien de maintenance",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "856f5fd1-20be-4d69-a6e2-eafe90fa284a"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "frigoriste",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "5cc17775-d62d-441b-9db8-861bb317cd93"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "plombier climaticien",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "dcf0c4f8-3fbe-4e7c-8407-e2f0db4e4c8e"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "chef de projet cvc",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "0d10d9c2-a236-43d8-8470-87715f9570f6"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "plomberie",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "361dca21-e6d8-46a9-94be-46ecfcfc7866"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "chargé de projets en électricité",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "1d9c2fc5-99e7-4cef-bb13-40b9f6050c8b"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "chargé d'études",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "92e79c7f-7313-4f20-b24c-1139732353e7"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "projeteur bim électricité",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "68874de3-b47f-4e03-9cc9-b9a5dc88dc16"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "expert énergie",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "54170c82-8c03-4889-aa22-221e6718df21"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ingénieur thermique",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "d767ee99-822a-4235-9b76-88fda6b4f9bb"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ingénieur géotechnique",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "f035c459-f06f-4a9a-95f8-0ec004c8a2ac"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "structure",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "1c3c1d6a-55f2-4976-857d-9df8d643cecd"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ingénieur réseau et sécurité",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "dcdd1596-91df-41c2-8326-156415a09141"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "réseaux et télécoms",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "70aa7016-3ce8-4d79-b5b8-c0727015cc15"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "testeur qa",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "1d2cfba4-768b-438d-93d6-1d8f9144f6c8"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "devops",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "6b66083b-43f6-47df-9312-af8e3ea4a5b8"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "développeur web",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "4253f72f-a03d-4149-b1e9-6db9f5f19084"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "lead développeur mobile",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "4d7d19ee-5430-4389-b829-9bf7fea9e92f"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "bim modeleur",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "be56c753-3feb-4a98-be1f-b41ad764464d"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "bim manager",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "41769f74-5eb6-466a-8e78-777e1f3f0aaa"
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "name": "Filter - Ingénierie Technique & Maintenance",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        200
+      ],
+      "id": "751d2907-0f9d-4beb-8e3b-512c235e3b8a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "data engineer",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "3428fd8c-2995-4be2-bdae-25221d197a70"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "ia engineer",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "984a361c-29ef-4216-96ee-411cb03ed866"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "dynamics 365 crm",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "1664592c-f3ac-46f7-9be5-6ef7876abcb3"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "power platform engineer",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "a991b09b-34e9-4461-ad8e-03e96993e914"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "devops",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "f3f83a55-eafa-46ee-bc1a-47da61c238e3"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "testeur qa",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "b051a3ea-e39c-4e65-aa3f-c8ae68ef7706"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "développeur web",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "9fdf3cd2-8fa8-4d1f-b6df-427c2dab5faf"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "lead dev",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "e714482d-660e-4203-9706-f5df65818934"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "expert ssi",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "a76ed004-3709-4d6e-a6c7-c505e38bda4d"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "rgpd",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "fb48ff2e-1745-4ebb-873a-60ce3e0dc146"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "conformité hse",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "cbe91eb5-9773-4641-bdb2-74183d03b2a1"
+            },
+            {
+              "leftValue": "={{ $json.job }}",
+              "rightValue": "conformité rse",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "30790f10-3c5f-481a-b209-34861d2a246b"
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "name": "Filter - Data, Informatique & Digital",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        1320
+      ],
+      "id": "4d2ab082-49ae-4c75-9013-63ccd7eb1d76"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -980,
+        460
+      ],
+      "id": "d64e51e6-60cd-4f38-b60e-0eae7108277f",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Vn3DgHMO5vyPmNsFPwgBGgo1jc6jKMitOgimfShZdSY",
+          "mode": "list",
+          "cachedResultName": "Liste freelance / client au 13/01/2025",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vn3DgHMO5vyPmNsFPwgBGgo1jc6jKMitOgimfShZdSY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1124586728,
+          "mode": "list",
+          "cachedResultName": "HackatonFreelancesMomi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vn3DgHMO5vyPmNsFPwgBGgo1jc6jKMitOgimfShZdSY/edit#gid=1124586728"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -700,
+        740
+      ],
+      "id": "32e9e877-2e66-48a7-bcbc-4ece8fde842f",
+      "name": "Google Sheets2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "B12h9dpp5MK06ClM",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/bebity~linkedin-jobs-scraper/run-sync-get-dataset-items?token=apify_api_WsOhmVIe06XGCopYHLs854r1Wvkr8o48YClt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"contractType\": \"C\",\n    \"location\": \"France\",\n    \"proxy\": {\n        \"useApifyProxy\": true,\n        \"apifyProxyGroups\": [\n            \"RESIDENTIAL\"\n        ]\n    },\n    \"publishedAt\": \"r86400\",\n    \"rows\": 10,\n    \"title\": \"(\\\"Architecte\\\" OR \\\"Architecte d’intérieur\\\" OR \\\"Architecte D.E\\\" OR \\\"Scénographe\\\" OR \\\"Freelance\\\" OR \\\"Maître d’œuvre\\\" OR \\\"MOEX\\\" OR \\\"Maitre d’œuvre d’exécution\\\" OR \\\"Perspectiviste 3D\\\" OR \\\"Designer\\\" OR \\\"Artiste 3D\\\" OR \\\"Infographiste\\\" OR \\\"Webdesigner\\\")\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -200,
+        760
+      ],
+      "id": "eece88ce-6c0c-44c2-91d1-412f83cb5714",
+      "name": "HTTP Request - Architecture, Urbanisme & Design"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9e838758-cb3b-4019-875b-ddb38b73212b",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "612abe3c-dd7d-4864-80b1-cbc4e3237c60",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "e58474ea-b0b5-4213-a317-934150ca0f44",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c340a5fa-4f3f-4ee9-ac79-8924fbdca192",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "6c0dc035-9f81-4cb0-96a5-5690e9eea1cd",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "976869a0-b9f7-49f9-abe7-da0074e2d0c1",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "f3acb7ca-c202-49a5-a4a3-0eb918097069",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "5754089a-43d9-45e0-89f7-7343172d87a4",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        40,
+        760
+      ],
+      "id": "34bf2cfc-dd47-4177-ae13-668506b93cb0",
+      "name": "Filtre Alternance & Stage"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        260,
+        920
+      ],
+      "id": "57f5455e-a63f-4802-8df5-d10d636ead0a",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/bebity~linkedin-jobs-scraper/run-sync-get-dataset-items?token=apify_api_WsOhmVIe06XGCopYHLs854r1Wvkr8o48YClt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"contractType\": \"C\",\n    \"location\": \"France\",\n    \"proxy\": {\n        \"useApifyProxy\": true,\n        \"apifyProxyGroups\": [\n            \"RESIDENTIAL\"\n        ]\n    },\n    \"publishedAt\": \"r86400\",\n    \"rows\": 10,\n    \"title\": \"(\\\"Property Manager\\\" OR \\\"Asset Manager\\\" OR \\\"Gestion immobilière\\\" OR \\\"Facility Manager\\\" OR \\\"Building Manager\\\" OR \\\"Assistant Property\\\" OR \\\"Responsable technique immobilier\\\" OR \\\"Gestionnaire technique\\\" OR \\\"Technical Manager\\\" OR \\\"Chef de projet maintenance\\\")\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -200,
+        380
+      ],
+      "id": "624cc8a7-97d1-4c96-9d6e-ce7568fb909d",
+      "name": "HTTP Request - Gestion Immobilière & Property Management"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9e838758-cb3b-4019-875b-ddb38b73212b",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "612abe3c-dd7d-4864-80b1-cbc4e3237c60",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "e58474ea-b0b5-4213-a317-934150ca0f44",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c340a5fa-4f3f-4ee9-ac79-8924fbdca192",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "6c0dc035-9f81-4cb0-96a5-5690e9eea1cd",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "976869a0-b9f7-49f9-abe7-da0074e2d0c1",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "f3acb7ca-c202-49a5-a4a3-0eb918097069",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "5754089a-43d9-45e0-89f7-7343172d87a4",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        380
+      ],
+      "id": "4c37f3a9-83d1-465a-a23a-a43747f43e58",
+      "name": "Filtre Alternance & Stage1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        260,
+        540
+      ],
+      "id": "2b3ab26b-5fc1-468a-a9f2-0da3a4d1fbce",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9e838758-cb3b-4019-875b-ddb38b73212b",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "612abe3c-dd7d-4864-80b1-cbc4e3237c60",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "e58474ea-b0b5-4213-a317-934150ca0f44",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c340a5fa-4f3f-4ee9-ac79-8924fbdca192",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "6c0dc035-9f81-4cb0-96a5-5690e9eea1cd",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "976869a0-b9f7-49f9-abe7-da0074e2d0c1",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "f3acb7ca-c202-49a5-a4a3-0eb918097069",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "5754089a-43d9-45e0-89f7-7343172d87a4",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        20
+      ],
+      "id": "27c216e2-2cdd-432c-88f8-3961efad299a",
+      "name": "Filtre Alternance & Stage2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        260,
+        180
+      ],
+      "id": "6800d753-9bf7-489e-b065-d716ee390116",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/bebity~linkedin-jobs-scraper/run-sync-get-dataset-items?token=apify_api_WsOhmVIe06XGCopYHLs854r1Wvkr8o48YClt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"contractType\": \"C\",\n    \"location\": \"France\",\n    \"proxy\": {\n        \"useApifyProxy\": true,\n        \"apifyProxyGroups\": [\n            \"RESIDENTIAL\"\n        ]\n    },\n    \"publishedAt\": \"r86400\",\n    \"rows\": 10,\n    \"title\": \"(\\\"Chargé de projets électricité\\\" OR \\\"Chargé d’études\\\" OR \\\"Projeteur BIM\\\" OR \\\"Expert énergie\\\" OR \\\"Ingénieur thermique\\\" OR \\\"Ingénieur géotechnique\\\" OR \\\"Ingénieur structure\\\" OR \\\"Ingénieur réseau sécurité\\\" OR \\\"Modélisation hydraulique\\\" OR \\\"Technicien CVC\\\" OR \\\"Technicien maintenance\\\" OR \\\"Frigoriste\\\" OR \\\"Plombier climaticien\\\" OR \\\"Chef de projet CVC\\\" OR \\\"Ingénieur travaux\\\" OR \\\"Ingénieur travaux principal\\\" OR \\\"Conducteur de travaux\\\" OR \\\"OPC\\\" OR \\\"BIM Modeleur\\\" OR \\\"BIM Manager\\\")\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -200,
+        20
+      ],
+      "id": "b04ddca2-c779-412c-9e85-b027d10790b8",
+      "name": "HTTP Request - Ingénierie Technique & Maintenance"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9e838758-cb3b-4019-875b-ddb38b73212b",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "612abe3c-dd7d-4864-80b1-cbc4e3237c60",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternance",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "e58474ea-b0b5-4213-a317-934150ca0f44",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c340a5fa-4f3f-4ee9-ac79-8924fbdca192",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stage",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "6c0dc035-9f81-4cb0-96a5-5690e9eea1cd",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "976869a0-b9f7-49f9-abe7-da0074e2d0c1",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Stagiaire",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "f3acb7ca-c202-49a5-a4a3-0eb918097069",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "5754089a-43d9-45e0-89f7-7343172d87a4",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "Alternant",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        40,
+        1120
+      ],
+      "id": "ebd4cba5-388a-4594-8ae0-d2ec667bb606",
+      "name": "Filtre Alternance & Stage3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        260,
+        1300
+      ],
+      "id": "340b8c6e-b874-474a-9bf8-27686b6be9a1",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/bebity~linkedin-jobs-scraper/run-sync-get-dataset-items?token=apify_api_WsOhmVIe06XGCopYHLs854r1Wvkr8o48YClt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"contractType\": \"C\",\n    \"location\": \"France\",\n    \"proxy\": {\n        \"useApifyProxy\": true,\n        \"apifyProxyGroups\": [\n            \"RESIDENTIAL\"\n        ]\n    },\n    \"publishedAt\": \"r86400\",\n    \"rows\": 10,\n    \"title\": \"(\\\"Testeur QA\\\" OR \\\"DevOps\\\" OR \\\"Développeur Web\\\" OR \\\"Lead développeur mobile\\\" OR \\\"Data Engineer\\\" OR \\\"IA Engineer\\\" OR \\\"Dynamics 365 Engineer\\\" OR \\\"Power Platform\\\" OR \\\"Expert SSI\\\" OR \\\"RGPD\\\" OR \\\"Développeur freelance\\\" OR \\\"Product Owner\\\")\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -200,
+        1120
+      ],
+      "id": "afbb84d8-61cf-4079-b893-f4ff6b01c82f",
+      "name": "HTTP Request - Data, Informatique & Digital"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3a1bba1b-7c81-4311-a583-0305fd4d9c5a",
+              "name": "firstName",
+              "value": "={{ $json.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "8b7aa8e2-ead1-4041-ae30-820ac231fcae",
+              "name": "lastName",
+              "value": "={{ $json.lastName }}",
+              "type": "string"
+            },
+            {
+              "id": "6b73b605-ddad-476f-ba3b-ed6e66068e17",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "32f5ad1e-2fda-4f16-a1b5-206a7d769090",
+              "name": "jobUrl",
+              "value": "={{ $json.jobUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1820,
+        960
+      ],
+      "id": "3fed6395-f03e-421c-aa6f-d71c4ac7d719",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        2620,
+        1000
+      ],
+      "id": "ad72fb54-b51a-4da5-9069-47682e1926d7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "### 🧾 Scrapping et filtrage – Offres & Freelances\n\n- Des **filtres sont appliqués** pour structurer la base de freelances par **grandes familles de métiers**.\n\n- En parallèle, des **requêtes API LinkedIn Jobs** sont effectuées pour chaque **domaine métier ciblé**.\n\n- On applique ensuite des **filtres contractuels** pour **exclure les offres de type stage ou alternance**, afin de se concentrer uniquement sur les **contrats freelance et CDI/CDD**.\n\n- Les **résultats (offres et freelances)** sont ensuite **croisés pour générer toutes les combinaisons possibles** entre profils et types d’offres. Les offres sont exportés dans une base de données notion.    \n\nCela permet d’alimenter un **filtrage aval plus structuré**, avec des **ensembles cohérents** facilitant un **matching plus précis et pertinent**.\n\n              ",
+        "height": 1800,
+        "width": 1940,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1040,
+        -280
+      ],
+      "typeVersion": 1,
+      "id": "daa08c57-f707-4a4d-8d15-75e072d375b4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "###  🤖 Matching IA : Profils vs Offres\n\nChaque paire (profil + offre) est évaluée par un agent IA.\n\nL’IA retourne :\n- Un **score de compatibilité (0–100)**.\n- Un **résumé clair**.\n- Les **arguments pour** et **contre**.\n\nLe scoring basé sur : tarif, expérience, compétences, diplômes, localisation, secteur/type de mission.\n",
+        "height": 840,
+        "width": 1620,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        420
+      ],
+      "id": "9202499b-b61d-4938-a23a-99b381bce766",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "### 📩 Sélection et envoi des meilleurs matchs\n\nLes profils sont triés **par score décroissant**, du meilleur au moins bon,  afin de faciliter un éventuel export vers un Google Sheet.\n\nCeux avec un **score ≥ 70** sont considérés comme de **bons matchs**.\n\nLeur analyse (synthèse, points forts/faibles), ainsi que le **nom, prénom, email du freelance** et le **lien vers l’offre** sont formatés en **table HTML** et envoyés par **email récapitulatif**.\n  ",
+        "height": 420,
+        "width": 1360,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2860,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "56ea09fd-f082-43b2-a8ad-b334182b2fae",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3554e1f5-8e84-4d62-8281-59d3617f3933",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1000,
+        740
+      ],
+      "id": "e7750b0f-143f-40c0-b121-7012da5e4c9b",
+      "name": "Filter"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        []
+      ]
+    },
+    "HTML1": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter - Architecture, Urbanisme & Design": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Filter - Gestion Immobilière & Property Management": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Filter - Ingénierie Technique & Maintenance": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Filter - Data, Informatique & Digital": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request - Architecture, Urbanisme & Design",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request - Ingénierie Technique & Maintenance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets2": {
+      "main": [
+        [
+          {
+            "node": "Filter - Architecture, Urbanisme & Design",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filter - Gestion Immobilière & Property Management",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filter - Ingénierie Technique & Maintenance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filter - Data, Informatique & Digital",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Architecture, Urbanisme & Design": {
+      "main": [
+        [
+          {
+            "node": "Filtre Alternance & Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtre Alternance & Stage": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Gestion Immobilière & Property Management": {
+      "main": [
+        [
+          {
+            "node": "Filtre Alternance & Stage1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtre Alternance & Stage1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtre Alternance & Stage2": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Ingénierie Technique & Maintenance": {
+      "main": [
+        [
+          {
+            "node": "Filtre Alternance & Stage2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtre Alternance & Stage3": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Data, Informatique & Digital": {
+      "main": [
+        [
+          {
+            "node": "Filtre Alternance & Stage3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a1f0d24e-afd0-44ea-9e72-67ad16af3adc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1259a4c98e2a3c1459f386250fe50a8519ebdf1d94d73bc6c6660f3c9cccf7f4"
+  },
+  "id": "g3wCzpL5FpvAuSOg",
+  "tags": []
+}
